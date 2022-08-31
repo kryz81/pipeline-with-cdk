@@ -19,6 +19,7 @@ export class PipelineStack extends Stack {
     const pipeline = new Pipeline(this, "pipeline", {
       pipelineName: "Pipeline",
       crossAccountKeys: false,
+      restartExecutionOnUpdate: true,
     });
 
     const sourceOutput = new Artifact("SourceOutput");
@@ -47,6 +48,7 @@ export class PipelineStack extends Stack {
     });
 
     const buildOutput = new Artifact("BuildOutput");
+    const serviceOutput = new Artifact("ServiceOutput");
 
     pipeline.addStage({
       stageName: "Build",
@@ -61,6 +63,19 @@ export class PipelineStack extends Stack {
             },
             buildSpec: BuildSpec.fromSourceFilename(
               "build-specs/cdk-build-spec.yml"
+            ),
+          }),
+        }),
+        new CodeBuildAction({
+          actionName: "Service_Build",
+          input: sourceOutputCode,
+          outputs: [serviceOutput],
+          project: new PipelineProject(this, "ServiceBuildProject", {
+            environment: {
+              buildImage: LinuxBuildImage.STANDARD_5_0,
+            },
+            buildSpec: BuildSpec.fromSourceFilename(
+              "build-specs/service-build-spec.yml"
             ),
           }),
         }),
