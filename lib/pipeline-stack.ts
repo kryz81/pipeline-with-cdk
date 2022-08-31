@@ -22,6 +22,7 @@ export class PipelineStack extends Stack {
     });
 
     const sourceOutput = new Artifact("SourceOutput");
+    const sourceOutputCode = new Artifact("SourceOutputCode");
 
     pipeline.addStage({
       stageName: "Source",
@@ -33,6 +34,14 @@ export class PipelineStack extends Stack {
           actionName: "PipelineSource",
           oauthToken: SecretValue.secretsManager("github-token"),
           output: sourceOutput,
+        }),
+        new GitHubSourceAction({
+          owner: "kryz81",
+          repo: "aws-codepipeline-sample-app",
+          branch: "main",
+          actionName: "PipelineSource-code",
+          oauthToken: SecretValue.secretsManager("github-token"),
+          output: sourceOutputCode,
         }),
       ],
     });
@@ -64,7 +73,7 @@ export class PipelineStack extends Stack {
         new CloudFormationCreateUpdateStackAction({
           actionName: "pipeline_update",
           stackName: "PipelineStack",
-          templatePath: buildOutput.atPath("Pipelinestack.template.json"),
+          templatePath: buildOutput.atPath("PipelineStack.template.json"),
           adminPermissions: true,
         }),
       ],
